@@ -1,3 +1,7 @@
+using Microsoft.Extensions.Options;
+using QueueLab.Messaging;
+using RabbitMQ.Client;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +9,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection("RabbitMq"));
+
+builder.Services.AddSingleton(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<RabbitMqSettings>>().Value;
+
+    return new ConnectionFactory
+    {
+        HostName = settings.HostName,
+        Port = settings.Port,
+        UserName = settings.UserName,
+        Password = settings.Password
+    };
+});
+
+builder.Services.AddSingleton<MessagePublisher>();
+builder.Services.AddHostedService<MessageConsumer>();
 
 var app = builder.Build();
 
