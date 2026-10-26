@@ -21,6 +21,14 @@ namespace QueueLab.Controllers
 
             return Accepted();
         }
+
+        [HttpPost("broadcast")]
+        public async Task<IActionResult> Broadcast([FromBody] SendMessageRequest request, CancellationToken cancellationToken)
+        {
+            await _publisher.PublishBroadcastAsync(request.Text, cancellationToken);
+
+            return Accepted();
+        }
     }
 
     public record SendMessageRequest(string Text);

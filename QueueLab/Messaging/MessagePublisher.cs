@@ -48,6 +48,35 @@ namespace QueueLab.Messaging
             _logger.LogInformation("Отправлено в очередь '{Queue}': {Text}", _settings.QueueName, text);
         }
 
+        public async Task PublishBroadcastAsync(string text, CancellationToken cancellationToken = default)
+        {
+            var connection = await GetConnectionAsync(cancellationToken);
+
+            await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
+
+            await channel.ExchangeDeclareAsync(
+                exchange: _settings.ExchangeName,
+                type: ExchangeType.Fanout,
+                durable: true,
+                autoDelete: false,
+                cancellationToken: cancellationToken);
+
+            var properties = new BasicProperties
+            {
+                Persistent = true
+            };
+
+            await channel.BasicPublishAsync(
+                exchange: _settings.ExchangeName,
+                routingKey: string.Empty,
+                mandatory: false,
+                basicProperties: properties,
+                body: Encoding.UTF8.GetBytes(text),
+                cancellationToken: cancellationToken);
+
+            _logger.LogInformation("Broadcast в exchange '{Exchange}': {Text}", _settings.ExchangeName, text);
+        }
+
         private async Task<IConnection> GetConnectionAsync(CancellationToken cancellationToken)
         {
             if (_connection is { IsOpen: true })

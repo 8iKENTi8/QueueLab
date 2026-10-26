@@ -20,7 +20,7 @@ namespace QueueLab.Messaging
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await using var connection = await ConnectWithRetryAsync(stoppingToken);
+            await using var connection = await RabbitMqConnector.ConnectWithRetryAsync(_connectionFactory, _logger, stoppingToken);
             await using var channel = await connection.CreateChannelAsync(cancellationToken: stoppingToken);
 
             await channel.QueueDeclareAsync(
@@ -54,7 +54,7 @@ namespace QueueLab.Messaging
             {
                 _logger.LogInformation("Получено из очереди: {Text}", text);
 
-                await Task.Delay(TimeSpan.FromSeconds(1));
+                await Task.Delay(TimeSpan.FromSeconds(10));
 
                 await channel.BasicAckAsync(args.DeliveryTag, multiple: false);
             }
@@ -62,22 +62,6 @@ namespace QueueLab.Messaging
             {
                 _logger.LogError(ex, "Ошибка обработки сообщения: {Text}", text);
                 await channel.BasicNackAsync(args.DeliveryTag, multiple: false, requeue: true);
-            }
-        }
-
-        private async Task<IConnection> ConnectWithRetryAsync(CancellationToken cancellationToken)
-        {
-            while (true)
-            {
-                try
-                {
-                    return await _connectionFactory.CreateConnectionAsync(cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning("RabbitMQ недоступен ({Message}). Повтор через 5 секунд...", ex.Message);
-                    await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
-                }
             }
         }
     }

@@ -1,6 +1,41 @@
-@QueueLab_HostAddress = http://localhost:5265
+@host = http://localhost:5265
 
-GET {{QueueLab_HostAddress}}/weatherforecast/
-Accept: application/json
+### Отправить одно сообщение
+POST {{host}}/api/messages
+Content-Type: application/json
 
-###
+{
+  "text": "Сообщение номер 1"
+}
+
+### Отправить ещё три сообщения
+POST {{host}}/api/messages
+Content-Type: application/json
+
+{
+  "text": "Сообщение номер 2"
+}
+
+### Третье
+POST {{host}}/api/messages
+Content-Type: application/json
+
+{
+  "text": "Сообщение номер 3"
+}
+
+### Четвёртое
+POST {{host}}/api/messages
+Content-Type: application/json
+
+{
+  "text": "Сообщение номер 4"
+}
+
+### Broadcast: одна отправка — обе очереди получат копию
+POST {{host}}/api/messages/broadcast
+Content-Type: application/json
+
+{
+  "text": "Всем привет из fanout!"
+}

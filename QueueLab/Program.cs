@@ -28,6 +28,28 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddSingleton<MessagePublisher>();
 builder.Services.AddHostedService<MessageConsumer>();
 
+builder.Services.AddSingleton<IHostedService>(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<RabbitMqSettings>>();
+
+    return new BroadcastConsumer(
+        sp.GetRequiredService<ConnectionFactory>(),
+        options,
+        sp.GetRequiredService<ILogger<BroadcastConsumer>>(),
+        options.Value.BroadcastQueueA);
+});
+
+builder.Services.AddSingleton<IHostedService>(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<RabbitMqSettings>>();
+
+    return new BroadcastConsumer(
+        sp.GetRequiredService<ConnectionFactory>(),
+        options,
+        sp.GetRequiredService<ILogger<BroadcastConsumer>>(),
+        options.Value.BroadcastQueueB);
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
