@@ -39,3 +39,12 @@ Content-Type: application/json
 {
   "text": "Всем привет из fanout!"
 }
+
+### Kafka: отправить заказ в топик orders
+POST {{host}}/api/kafka/orders
+Content-Type: application/json
+
+{
+  "orderId": "order-1",
+  "text": "Заказ 1"
+}

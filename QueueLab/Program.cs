@@ -28,6 +28,10 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddSingleton<MessagePublisher>();
 builder.Services.AddHostedService<MessageConsumer>();
 
+builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("Kafka"));
+builder.Services.AddSingleton<KafkaOrderProducer>();
+builder.Services.AddHostedService<KafkaOrderConsumer>();
+
 builder.Services.AddSingleton<IHostedService>(sp =>
 {
     var options = sp.GetRequiredService<IOptions<RabbitMqSettings>>();
